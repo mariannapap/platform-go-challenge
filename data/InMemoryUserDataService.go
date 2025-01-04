@@ -42,6 +42,22 @@ func (s *InMemoryUserDataService) AddAssetToFavourites(userID string, asset mode
 			return err
 		}
 	}
+
+	// Helper function to check for duplicate asset ID
+	exists := func(favourites []models.Asset, assetID string) bool {
+		for _, favAsset := range favourites {
+			if favAsset.ID == assetID {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Use the helper function to check for duplicate asset ID
+	if exists(user.Favourites, asset.ID) {
+		return errors.New("duplicate asset ID")
+	}
+
 	user.Favourites = append(user.Favourites, asset)
 	return nil
 }

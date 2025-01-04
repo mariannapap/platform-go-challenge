@@ -76,11 +76,20 @@ func (h *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *h
 
 	err = h.dataService.AddAssetToFavourites(userID, asset)
 	if err != nil {
-		http.Error(w, "Failed to add asset", http.StatusInternalServerError)
+		if err.Error() == "duplicate asset ID" {
+			http.Error(w, "Asset already exists in favourites", http.StatusConflict)
+		} else {
+			http.Error(w, "Failed to add asset", http.StatusInternalServerError)
+		}
 		return
 	}
 
-	user, _ := h.dataService.GetUser(userID)
+	user, err := h.dataService.GetUser(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
 	err = json.NewEncoder(w).Encode(user.Favourites)
 	if err != nil {
 		log.Printf("Failed to encode response: %v", err)
