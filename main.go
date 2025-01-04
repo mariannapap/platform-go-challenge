@@ -1,8 +1,6 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 	"platform-go-challenge/data"
@@ -22,28 +20,16 @@ import (
 // @BasePath /
 
 func main() {
-	router := mux.NewRouter()
-
 	// Create an instance of InMemoryUserDataService
 	userDataService := data.NewInMemoryUserDataService()
 
 	// Create a new UserFavouritesHandler using the data service
 	userFavouritesService := handlers.NewUserFavouritesService(userDataService)
 
-	router.HandleFunc("/users/{id}/favourites", userFavouritesService.GetUserFavourites).Methods("GET")
-	router.HandleFunc("/users/{id}/favourites", userFavouritesService.AddAssetToFavourites).Methods("POST")
-	router.HandleFunc("/users/{id}/favourites/{asset_id}", userFavouritesService.RemoveAssetFromFavourites).Methods("DELETE")
-	router.HandleFunc("/users/{id}/favourites/{asset_id}", userFavouritesService.EditAssetDescription).Methods("PUT")
+	// Configure routes
+	router := ConfigureRoutes(userFavouritesService)
 
-	// Add the Swagger endpoint
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
-
+	// Start the server
 	http.Handle("/", router)
-
-	log.Println("Starting server on :8080")
-	err := http.ListenAndServe(":8080", router)
-	if err != nil {
-		log.Printf("Error starting server: %v", err)
-		return
-	}
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
