@@ -8,8 +8,15 @@ import (
 	"platform-go-challenge/models"
 )
 
-// Sample data storage
-var users = map[string]*models.User{}
+type UserFavouritesService struct {
+	users map[string]*models.User
+}
+
+func NewUserFavouritesService() *UserFavouritesService {
+	return &UserFavouritesService{
+		users: make(map[string]*models.User),
+	}
+}
 
 // GetUserFavourites godoc
 // @Summary Get user's favourites
@@ -22,11 +29,11 @@ var users = map[string]*models.User{}
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites [get]
-func GetUserFavourites(w http.ResponseWriter, r *http.Request) {
+func (s *UserFavouritesService) GetUserFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 
-	user, ok := users[userID]
+	user, ok := s.users[userID]
 	if !ok {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -52,7 +59,7 @@ func GetUserFavourites(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites [post]
-func AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
+func (s *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 
@@ -64,10 +71,10 @@ func AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := users[userID]
+	user, ok := s.users[userID]
 	if !ok {
 		user = &models.User{ID: userID}
-		users[userID] = user
+		s.users[userID] = user
 	}
 
 	user.Favourites = append(user.Favourites, asset)
@@ -91,12 +98,12 @@ func AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites/{asset_id} [delete]
-func RemoveAssetFromFavourites(w http.ResponseWriter, r *http.Request) {
+func (s *UserFavouritesService) RemoveAssetFromFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	assetID := vars["asset_id"]
 
-	user, ok := users[userID]
+	user, ok := s.users[userID]
 	if !ok {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -130,7 +137,7 @@ func RemoveAssetFromFavourites(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites/{asset_id} [put]
-func EditAssetDescription(w http.ResponseWriter, r *http.Request) {
+func (s *UserFavouritesService) EditAssetDescription(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	assetID := vars["asset_id"]
@@ -143,7 +150,7 @@ func EditAssetDescription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, ok := users[userID]
+	user, ok := s.users[userID]
 	if !ok {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
