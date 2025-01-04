@@ -5,6 +5,7 @@ import (
 	"github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
+	"platform-go-challenge/data"
 	_ "platform-go-challenge/docs" // swag init generates this file
 	"platform-go-challenge/handlers"
 )
@@ -23,7 +24,11 @@ import (
 func main() {
 	router := mux.NewRouter()
 
-	userFavouritesService := handlers.NewUserFavouritesService()
+	// Create an instance of InMemoryUserDataService
+	userDataService := data.NewInMemoryUserDataService()
+
+	// Create a new UserFavouritesHandler using the data service
+	userFavouritesService := handlers.NewUserFavouritesService(userDataService)
 
 	router.HandleFunc("/users/{id}/favourites", userFavouritesService.GetUserFavourites).Methods("GET")
 	router.HandleFunc("/users/{id}/favourites", userFavouritesService.AddAssetToFavourites).Methods("POST")
@@ -34,6 +39,7 @@ func main() {
 	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	http.Handle("/", router)
+
 	log.Println("Starting server on :8080")
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {

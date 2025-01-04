@@ -5,16 +5,19 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"platform-go-challenge/data"
 	"platform-go-challenge/models"
 )
 
+// UserFavouritesService implements the UserFavouritesHandler interface.
 type UserFavouritesService struct {
-	users map[string]*models.User
+	dataService data.UserDataService
 }
 
-func NewUserFavouritesService() *UserFavouritesService {
+// NewUserFavouritesService creates a new UserFavouritesService.
+func NewUserFavouritesService(dataService data.UserDataService) *UserFavouritesService {
 	return &UserFavouritesService{
-		users: make(map[string]*models.User),
+		dataService: dataService,
 	}
 }
 
@@ -29,17 +32,17 @@ func NewUserFavouritesService() *UserFavouritesService {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites [get]
-func (s *UserFavouritesService) GetUserFavourites(w http.ResponseWriter, r *http.Request) {
+func (h *UserFavouritesService) GetUserFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 
-	user, ok := s.users[userID]
-	if !ok {
+	user, err := h.dataService.GetUser(userID)
+	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
-	err := json.NewEncoder(w).Encode(user.Favourites)
+	err = json.NewEncoder(w).Encode(user.Favourites)
 	if err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -59,7 +62,7 @@ func (s *UserFavouritesService) GetUserFavourites(w http.ResponseWriter, r *http
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites [post]
-func (s *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
+func (h *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 
@@ -71,13 +74,13 @@ func (s *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *h
 		return
 	}
 
-	user, ok := s.users[userID]
-	if !ok {
-		user = &models.User{ID: userID}
-		s.users[userID] = user
+	err = h.dataService.AddAssetToFavourites(userID, asset)
+	if err != nil {
+		http.Error(w, "Failed to add asset", http.StatusInternalServerError)
+		return
 	}
 
-	user.Favourites = append(user.Favourites, asset)
+	user, _ := h.dataService.GetUser(userID)
 	err = json.NewEncoder(w).Encode(user.Favourites)
 	if err != nil {
 		log.Printf("Failed to encode response: %v", err)
@@ -98,25 +101,19 @@ func (s *UserFavouritesService) AddAssetToFavourites(w http.ResponseWriter, r *h
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites/{asset_id} [delete]
-func (s *UserFavouritesService) RemoveAssetFromFavourites(w http.ResponseWriter, r *http.Request) {
+func (h *UserFavouritesService) RemoveAssetFromFavourites(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	assetID := vars["asset_id"]
 
-	user, ok := s.users[userID]
-	if !ok {
-		http.Error(w, "User not found", http.StatusNotFound)
+	err := h.dataService.RemoveAssetFromFavourites(userID, assetID)
+	if err != nil {
+		http.Error(w, "Failed to remove asset", http.StatusInternalServerError)
 		return
 	}
 
-	for i, asset := range user.Favourites {
-		if asset.ID == assetID {
-			user.Favourites = append(user.Favourites[:i], user.Favourites[i+1:]...)
-			break
-		}
-	}
-
-	err := json.NewEncoder(w).Encode(user.Favourites)
+	user, _ := h.dataService.GetUser(userID)
+	err = json.NewEncoder(w).Encode(user.Favourites)
 	if err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -137,7 +134,7 @@ func (s *UserFavouritesService) RemoveAssetFromFavourites(w http.ResponseWriter,
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{id}/favourites/{asset_id} [put]
-func (s *UserFavouritesService) EditAssetDescription(w http.ResponseWriter, r *http.Request) {
+func (h *UserFavouritesService) EditAssetDescription(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	userID := vars["id"]
 	assetID := vars["asset_id"]
@@ -150,19 +147,13 @@ func (s *UserFavouritesService) EditAssetDescription(w http.ResponseWriter, r *h
 		return
 	}
 
-	user, ok := s.users[userID]
-	if !ok {
-		http.Error(w, "User not found", http.StatusNotFound)
+	err = h.dataService.EditAssetDescription(userID, assetID, updatedAsset.Description)
+	if err != nil {
+		http.Error(w, "Failed to edit asset description", http.StatusInternalServerError)
 		return
 	}
 
-	for i, asset := range user.Favourites {
-		if asset.ID == assetID {
-			user.Favourites[i].Description = updatedAsset.Description
-			break
-		}
-	}
-
+	user, _ := h.dataService.GetUser(userID)
 	err = json.NewEncoder(w).Encode(user.Favourites)
 	if err != nil {
 		log.Printf("Failed to encode response: %v", err)
