@@ -29,3 +29,18 @@ It is appreciated, though not required, if a Dockerfile is included.
 Just create a fork from the current repo and send it to us!
 
 Good luck, potential colleague!
+
+## Docker Setup
+
+### Build the Docker Image
+To build the Docker image, navigate to the root directory of the project and run the following command:
+```sh
+docker build -t gwi-app .
+```
+
+### Run the Docker Container
+```sh
+docker run -p 8080:8080 gwi-app
+```
+
+This will start the web server and make it accessible at [http://localhost:8080](http://localhost:8080).
