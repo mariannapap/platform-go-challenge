@@ -44,3 +44,56 @@ docker run -p 8080:8080 gwi-app
 ```
 
 This will start the web server and make it accessible at [http://localhost:8080](http://localhost:8080).
+
+## Unit Tests
+
+The following methods in the `InMemoryUserDataService` have unit tests implemented:
+
+### GetUser
+- `GetUser` retrieves a user by ID.
+- Tests:
+    - Successful retrieval of a user.
+    - Retrieval of a non-existent user.
+
+### AddUser
+- `AddUser` adds a new user.
+- Tests:
+    - Successful addition of a user.
+
+### AddAssetToFavourites
+- `AddAssetToFavourites` adds an asset to the user's list of favourites.
+- Tests:
+    - Successful addition of an asset to the user's favourites.
+    - Attempt to add a duplicate asset to the user's favourites.
+
+### RemoveAssetFromFavourites
+- `RemoveAssetFromFavourites` removes an asset from the user's list of favourites.
+- Tests:
+    - Successful removal of an asset from the user's favourites.
+    - Attempt to remove a non-existent asset from the user's favourites.
+
+### EditAssetDescription
+- `EditAssetDescription` edits the description of an asset in the user's list of favourites.
+- Tests:
+    - Successful editing of an asset's description.
+    - Attempt to edit the description of a non-existent asset.
+
+
+## Unit Tests for Handlers
+
+The following methods in the `handlers` package have unit tests implemented:
+
+### MockUserDataService
+- `MockUserDataService` is a mock implementation of `UserDataService` for testing purposes.
+- Mocked Methods:
+    - `GetUser`
+    - `AddUser`
+    - `AddAssetToFavourites`
+    - `RemoveAssetFromFavourites`
+    - `EditAssetDescription`
+
+### GetUserFavourites
+- `GetUserFavourites` handles the retrieval of a user's favourite assets.
+- Tests:
+    - Successful response with the user's favourite assets.
+    - Response when the user is not found.
