@@ -45,6 +45,10 @@ docker run -p 8080:8080 gwi-app
 
 This will start the web server and make it accessible at [http://localhost:8080](http://localhost:8080).
 
+## Functionality
+
+The `UserFavouritesService` provides endpoints to manage a user's favourite assets. It allows users to retrieve, add, remove, and edit their favourite assets.
+
 ## Unit Tests
 
 The following methods in the `InMemoryUserDataService` have unit tests implemented:
